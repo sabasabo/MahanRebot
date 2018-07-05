@@ -3,7 +3,7 @@ const bot = new TeleBot('605816885:AAFe49RlVOiOQjU0F5Uqd60PorjSwJ2klmk');
 
 // 9:00
 const HOUR_TO_SEND_STATUS_PROMPT = 18;
-const MINUTE_TO_SEND_STATUS_PROMPT = 26;
+const MINUTE_TO_SEND_STATUS_PROMPT = 32;
  
 const SECONDS_TO_SEND_STATUS_PROMPT = 0;
 
@@ -175,7 +175,7 @@ bot.on("text", msg => {
 bot.on(/סטטוס/, msg => {
     const person = registration._registerationMap.get(msg.from.id);
     if (person) {
-        msg.reply.text(person.status || "אין סטטוס");
+        msg.reply.text(person.status || "חכה ל-9.. :)");
     }
     else {
         msg.reply.text("סורי, אתה לא רשום במערכת.. להרשמה הקש /start");
