@@ -2,7 +2,7 @@ const TeleBot = require('telebot');
 const bot = new TeleBot('605816885:AAFe49RlVOiOQjU0F5Uqd60PorjSwJ2klmk');
 
 // 9:00
-const TIME_TO_SEND_STATUS_PROMPT = 14;
+const TIME_TO_SEND_STATUS_PROMPT = 9;
 
 sendFormAtSpecifiedTime = (bot) => {
     setInterval(() => {
