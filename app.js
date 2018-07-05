@@ -1,70 +1,59 @@
-class Registration {
-    constructor(bot) {
-        this.bot = bot;
-        bot.on(['/start', '/hello'], this.registrationFunc);
-
-        bot.on('newChatMembers', this.registrationFunc);
-
-        bot.on(['/gaf_team'], (msg) => {
-            let person = registerationMap.get(msg.from.id);
-            if (person !== undefined) {
-                person.gaf = msg.text.split(' ')[1];
-                person.team = msg.text.split(' ')[2];
-                // registerationMap.set(msg.from.id, person);
-                msg.reply.text("welcom " + person.name + " from " + person.gaf + "/" + person.team);
-            }
-        });
-    }
-
-    registrationFunc(msg) {
-        msg.reply.text('הכנס גף וצוות /gaf_team');
-        let person = {};
-        person.id = msg.from.id;
-        person.name = msg.from.first_name + " " + msg.from.last_name;
-        registerationMap.set(person.id, person);
-    };
-}
 const TeleBot = require('telebot');
-const bot = new TeleBot('605816885:AAFe49RlVOiOQjU0F5Uqd60PorjSwJ2klmk');
+const bot = new TeleBot('608711787:AAHkJ1FOUYL6l7ZwDUXczklraWt77jJSN70');
+
+const registrationMap = new Map();
 
 // 9:00
-const HOUR_TO_SEND_STATUS_PROMPT = 9;
-const MINUTE_TO_SEND_STATUS_PROMPT = 0;
+const HOUR_TO_SEND_STATUS_PROMPT = 16;
+const MINUTE_TO_SEND_STATUS_PROMPT = 41;
+const SECONDS_TO_SEND_STATUS_PROMPT = 0;
 
-sendFormAtSpecifiedTime = (bot) => {
+let registrationFunc = (msg) => {
+    msg.reply.text('הכנס גף וצוות /gaf_team');
+    let person = {};
+    person.id = msg.from.id;
+    person.name = msg.from.first_name + " " + msg.from.last_name;
+    registrationMap.set(person.id, person);
+};
+
+let sendFormAtSpecifiedTime = () => {
     setInterval(() => {
-        // toDo : put stav and sabu map here
-        chatIdList.forEach((chat_id) => {
+        registrationMap.forEach((value, chat_id) => {
             bot.sendMessage(chat_id, 'בוקר טוב, איפה אתה?', {replyMarkup});
         });
     }, 86400000);
 };
 
-let date = new Date();
-let timeTOStartTheInterval = (60 - date.getSeconds()) * 1000;
-if(date.getHours() < HOUR_TO_SEND_STATUS_PROMPT) {
-    timeTOStartTheInterval += (HOUR_TO_SEND_STATUS_PROMPT - date.getHours()) * 3600000;
-        //(60 - date.getMinutes()) * 60000;
-} else {
-    timeTOStartTheInterval += (24 - (date.getHours() - HOUR_TO_SEND_STATUS_PROMPT)) * 3600000;
-        //(60 - date.getMinutes()) * 60000;
+let dateNow = new Date();
+let dateOfSendingPrompt = new Date();
+
+dateOfSendingPrompt.setHours(HOUR_TO_SEND_STATUS_PROMPT);
+dateOfSendingPrompt.setMinutes(MINUTE_TO_SEND_STATUS_PROMPT);
+dateOfSendingPrompt.setSeconds(SECONDS_TO_SEND_STATUS_PROMPT);
+
+let timeTOStartTheInterval;
+
+if(dateNow > dateOfSendingPrompt) {
+    // changing the date of sending the prompt to tomorrow
+    dateOfSendingPrompt.setDate(dateNow.getDate() + 1);
 }
 
-if(date.getMinutes() )
+let timeToStartTheInterval = dateOfSendingPrompt - dateNow;
 
-setTimeout(sendFormAtSpecifiedTime, timeTOStartTheInterval);
+console.log(timeToStartTheInterval);
+setTimeout(sendFormAtSpecifiedTime, timeToStartTheInterval);
 
 const replayOptions = {
-    OFFICE:{name: "במשרד", route: "במשרד/", answer: 'רק גובניקים אומרים משרד :)'},
-    VACATION:{name: "בחופש", route: "בחופש/", answer: 'סליחה על ההפרעה, תהנה בחופשה!'},
+    OFFICE: {name: "במשרד", route: "במשרד/", answer: 'רק גובניקים אומרים משרד :)'},
+    VACATION: {name: "בחופש", route: "בחופש/", answer: 'סליחה על ההפרעה, תהנה בחופשה!'},
     COURSE: {name: "בקורס", route: "בקורס/", answer: 'יפה לך, תהנה בקורס!'},
     DUTY: {name: "בתורנות", route: "בתורנות/", answer: 'תחזיק מעמד!'}
 };
 
 const gaffs = {
-    TMUNASH:{
+    TMUNASH: {
         name: 'תמונ"ש',
-        teams:{
+        teams: {
             LAPID_1: {name: 'לפיד 1', members: []},
             LAPID_2: {name: 'לפיד 2', members: []},
             DEVOPS: {name: 'devops', members: []},
@@ -85,40 +74,50 @@ let replyMarkup = bot.keyboard([
     [replayOptions.VACATION.name, replayOptions.COURSE.name]
 ], {resize: true});
 
-new Registration(bot);
 
-bot.on('/start', msg => {
-    _isWaitingForAnswer = true;
-return bot.sendMessage(msg.from.id, 'בוקר טוב, איפה אתה?', {replyMarkup});
 
+
+
+bot.on(['/start', '/hello'], registrationFunc);
+
+bot.on('newChatMembers', registrationFunc);
+
+bot.on(['/gaf_team'], (msg) => {
+    let person = registrationMap.get(msg.from.id);
+    if (person !== undefined) {
+        person.gaf = msg.text.split(' ')[1];
+        person.team = msg.text.split(' ')[2];
+        msg.reply.text("welcom " + person.name + " from " + person.gaf + "/" + person.team);
+    }
 });
 
-bot.on("text", msg => {
-    if(_isWaitingForAnswer) {
 
-        function answer (text) {
+
+
+
+
+bot.on("text", msg => {
+    if (_isWaitingForAnswer) {
+
+        function answer(text) {
             bot.sendMessage(msg.from.id, text, {replyMarkup: 'hide'});
             _isWaitingForAnswer = false;
         }
 
         switch (msg.text) {
-            case replayOptions.COURSE.name:
-            {
+            case replayOptions.COURSE.name: {
                 answer(replayOptions.COURSE.answer);
                 break;
             }
-            case replayOptions.DUTY.name:
-            {
+            case replayOptions.DUTY.name: {
                 answer(replayOptions.DUTY.answer);
                 break;
             }
-            case replayOptions.OFFICE.name:
-            {
+            case replayOptions.OFFICE.name: {
                 answer(replayOptions.OFFICE.answer);
                 break;
             }
-            case replayOptions.VACATION.name:
-            {
+            case replayOptions.VACATION.name: {
                 answer(replayOptions.VACATION.answer);
                 break;
             }
