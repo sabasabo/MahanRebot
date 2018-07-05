@@ -3,10 +3,9 @@ const bot = new TeleBot('608711787:AAHkJ1FOUYL6l7ZwDUXczklraWt77jJSN70');
 
 const registrationMap = new Map();
 
-// 9:00
-const HOUR_TO_SEND_STATUS_PROMPT = 16;
-const MINUTE_TO_SEND_STATUS_PROMPT = 41;
-const SECONDS_TO_SEND_STATUS_PROMPT = 0;
+let HOUR_TO_SEND_STATUS_PROMPT = new Date().getHours();
+let MINUTE_TO_SEND_STATUS_PROMPT = new Date().getMinutes() + 2;
+let SECONDS_TO_SEND_STATUS_PROMPT = 0;
 
 let registrationFunc = (msg) => {
     msg.reply.text('הכנס גף וצוות /gaf_team');
@@ -17,11 +16,11 @@ let registrationFunc = (msg) => {
 };
 
 let sendFormAtSpecifiedTime = () => {
-    setInterval(() => {
+    //setInterval(() => {
         registrationMap.forEach((value, chat_id) => {
             bot.sendMessage(chat_id, 'בוקר טוב, איפה אתה?', {replyMarkup});
         });
-    }, 86400000);
+    //}, 86400000);
 };
 
 let dateNow = new Date();
@@ -31,8 +30,6 @@ dateOfSendingPrompt.setHours(HOUR_TO_SEND_STATUS_PROMPT);
 dateOfSendingPrompt.setMinutes(MINUTE_TO_SEND_STATUS_PROMPT);
 dateOfSendingPrompt.setSeconds(SECONDS_TO_SEND_STATUS_PROMPT);
 
-let timeTOStartTheInterval;
-
 if(dateNow > dateOfSendingPrompt) {
     // changing the date of sending the prompt to tomorrow
     dateOfSendingPrompt.setDate(dateNow.getDate() + 1);
@@ -41,7 +38,7 @@ if(dateNow > dateOfSendingPrompt) {
 let timeToStartTheInterval = dateOfSendingPrompt - dateNow;
 
 console.log(timeToStartTheInterval);
-setTimeout(sendFormAtSpecifiedTime, timeToStartTheInterval);
+//setTimeout(sendFormAtSpecifiedTime, timeToStartTheInterval);
 
 const replayOptions = {
     OFFICE: {name: "במשרד", route: "במשרד/", answer: 'רק גובניקים אומרים משרד :)'},
@@ -88,6 +85,7 @@ bot.on(['/gaf_team'], (msg) => {
         person.gaf = msg.text.split(' ')[1];
         person.team = msg.text.split(' ')[2];
         msg.reply.text("welcom " + person.name + " from " + person.gaf + "/" + person.team);
+        sendFormAtSpecifiedTime();
     }
 });
 
