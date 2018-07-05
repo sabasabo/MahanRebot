@@ -2,10 +2,10 @@ const TeleBot = require('telebot');
 const bot = new TeleBot('605816885:AAFe49RlVOiOQjU0F5Uqd60PorjSwJ2klmk');
 
 // 9:00
-const HOUR_TO_SEND_STATUS_PROMPT = 17;
-const MINUTE_TO_SEND_STATUS_PROMPT = 1;
+const HOUR_TO_SEND_STATUS_PROMPT = 18;
+const MINUTE_TO_SEND_STATUS_PROMPT = 26;
  
-const SECONDS_TO_SEND_STATUS_PROMPT = 30;
+const SECONDS_TO_SEND_STATUS_PROMPT = 0;
 
 const gaffs = {
     TMUNASH: {
@@ -35,7 +35,7 @@ let registration = {
 bot.on('/start', msg => {
     if (registration._registerationMap.has(msg.from.id)) {
         const person = registration._registerationMap.get(msg.from.id);
-        bot.sendMessage(msg.from.id, 'שלום' + person.name + ' ! ', {replyMarkup: 'hide'});
+        bot.sendMessage(msg.from.id, 'שלום ' + person.name + ' ! ', {replyMarkup: 'hide'});
         return;
     }
 
@@ -50,37 +50,11 @@ bot.on('/start', msg => {
     registration._isWaitingForAnswer = true;
     let person = {};
     person.id = msg.from.id;
-    person.name = msg.from.first_name + " " + msg.from.last_name;
+    person.name = msg.from.first_name + " " + (msg.from.last_name || "");
     registration._registerationMap.set(person.id, person);
 
     bot.sendMessage(msg.from.id, 'ברוך הבא לגף, מאיזה צוות אתה?', {replyMarkup: tmunash_teams_keyboard});
 });
-
-let sendFormAtSpecifiedTime = () => {
-    setInterval(() => {
-        registration._registerationMap.forEach((value, chat_id) => {
-            bot.sendMessage(chat_id, 'בוקר טוב, איפה אתה?', {replyMarkup});
-        });
-    }, 86400000);
-};
-let dateNow = new Date();
-
-let dateOfSendingPrompt = new Date();
-dateOfSendingPrompt.setHours(HOUR_TO_SEND_STATUS_PROMPT);
-dateOfSendingPrompt.setMinutes(MINUTE_TO_SEND_STATUS_PROMPT);
-
-dateOfSendingPrompt.setSeconds(SECONDS_TO_SEND_STATUS_PROMPT);
-
-let timeTOStartTheInterval;
-if (dateNow > dateOfSendingPrompt) {
-    // changing the date of sending the prompt to tomorrow
-    dateOfSendingPrompt.setDate(dateNow.getDate() + 1);
-}
-
-let timeToStartTheInterval = dateOfSendingPrompt - dateNow;
-console.log(timeToStartTheInterval);
-
-setTimeout(sendFormAtSpecifiedTime, timeToStartTheInterval);
 
 bot.on("text", msg => {
     if (registration._isWaitingForAnswer) {
@@ -125,44 +99,90 @@ const replayOptions = {
     DUTY: {name: "בתורנות", route: "בתורנות/", answer: 'תחזיק מעמד!'}
 };
 
-let _isWaitingForAnswer = false;
+let dailyReport = {_isWaitingForAnswer: false};
 
-let replyMarkup = bot.keyboard([
+
+let dateNow = new Date();
+let dateOfSendingPrompt = new Date();
+
+dateOfSendingPrompt.setHours(HOUR_TO_SEND_STATUS_PROMPT);
+dateOfSendingPrompt.setMinutes(MINUTE_TO_SEND_STATUS_PROMPT);
+dateOfSendingPrompt.setSeconds(SECONDS_TO_SEND_STATUS_PROMPT);
+
+if (dateNow > dateOfSendingPrompt) {
+    // changing the date of sending the prompt to tomorrow
+    dateOfSendingPrompt.setDate(dateNow.getDate() + 1);
+}
+let timeToStartTheInterval = dateOfSendingPrompt - dateNow;
+
+let dailyReportKeyboard = bot.keyboard([
     [replayOptions.OFFICE.name, replayOptions.DUTY.name],
     [replayOptions.VACATION.name, replayOptions.COURSE.name]
 ], {resize: true});
 
-bot.on("text", msg => {
-    if (_isWaitingForAnswer) {
+const DAY_IN_MS = 86400000;
+let sendFormAtSpecifiedTime = () => {
+    sendDailyReport();
+    setInterval(sendDailyReport, DAY_IN_MS);
+};
 
-        function answer(text) {
-            bot.sendMessage(msg.from.id, text, {replyMarkup: 'hide'});
-            _isWaitingForAnswer = false;
+function sendDailyReport() {
+    console.log("sendDailyReport");
+    dailyReport._isWaitingForAnswer = true;
+    registration._registerationMap.forEach((person, chat_id) => {
+        bot.sendMessage(chat_id, 'בוקר טוב ' + person.name +  ', איפה אתה?', {replyMarkup: dailyReportKeyboard});
+    });
+}
+
+bot.on("text", msg => {
+    if (dailyReport._isWaitingForAnswer) {
+
+        function answer(option) {
+            bot.sendMessage(msg.from.id, option.answer, {replyMarkup: 'hide'});
+            dailyReport._isWaitingForAnswer = false;
+
+            const person = registration._registerationMap.get(msg.from.id);
+            if (person) {
+                person.status = option.name;
+            }
         }
 
         switch (msg.text) {
             case replayOptions.COURSE.name:
             {
-                answer(replayOptions.COURSE.answer);
+                answer(replayOptions.COURSE);
                 break;
             }
             case replayOptions.DUTY.name:
             {
-                answer(replayOptions.DUTY.answer);
+                answer(replayOptions.DUTY);
                 break;
             }
             case replayOptions.OFFICE.name:
             {
-                answer(replayOptions.OFFICE.answer);
+                answer(replayOptions.OFFICE);
                 break;
             }
             case replayOptions.VACATION.name:
             {
-                answer(replayOptions.VACATION.answer);
+                answer(replayOptions.VACATION);
                 break;
             }
         }
     }
 });
+
+bot.on(/סטטוס/, msg => {
+    const person = registration._registerationMap.get(msg.from.id);
+    if (person) {
+        msg.reply.text(person.status || "אין סטטוס");
+    }
+    else {
+        msg.reply.text("סורי, אתה לא רשום במערכת.. להרשמה הקש /start");
+    }
+});
+
+console.log(timeToStartTheInterval);
+setTimeout(sendFormAtSpecifiedTime, timeToStartTheInterval);
 
 bot.start();
