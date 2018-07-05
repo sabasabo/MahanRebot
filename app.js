@@ -8,7 +8,7 @@ sendFormAtSpecifiedTime = (bot) => {
     setInterval(() => {
         // toDo : put stav and sabu map here
         chatIdList.forEach((chat_id) => {
-            bot.sendMessage(chat_id, 'YYIBUT!!!! ISKI KAZE!!!', {replyMarkup});
+            bot.sendMessage(chat_id, 'בוקר טוב, איפה אתה?', {replyMarkup});
         });
     }, 86400000);
 };
