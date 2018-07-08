@@ -7,96 +7,75 @@ const MINUTE_TO_SEND_STATUS_PROMPT = 0;
  
 const SECONDS_TO_SEND_STATUS_PROMPT = 0;
 
-const gaffs = {
-    TMUNASH: {
-        name: 'תמונ"ש',
-        teams: {
-            LAPID_1: {name: 'לפיד 1'},
-            LAPID_2: {name: 'לפיד 2'},
-            DEVOPS: {name: 'devops'},
-            QA: {name: 'בדיקות'},
-            HAGNA: {name: 'שערי שמיים'}
-        }
+
+let GAFS = [
+    ['תמונת שמיים',['לפיד 1','לפיד 2','שערי שמיים','devops','בדיקות']]
+];
+
+function buildGafsKeyboard(action) {
+    let gafsButtons = [];
+    for(let i = 0; i < GAFS.length; i++) {
+        gafsButtons.push([bot.inlineButton(GAFS[i][0], {callback: '/' + action + i})]);
     }
-};
 
-/*TMUNA:{name: "בחופש", route: "בחופש/", answer: 'סליחה על ההפרעה, תהנה בחופשה!'},
- KEREN_OR: {name: "בתורנות", route: "בתורנות/", answer: 'תחזיק מעמד!'}
- TMUNAB: {name: "בקורס", route: "בקורס/", answer: 'יפה לך, תהנה בקורס!'},
- SHOB: {name: "בתורנות", route: "בתורנות/", answer: 'תחזיק מעמד!'},
- */
+    return bot.inlineKeyboard(gafsButtons);
+}
 
+function buildTeamsKeyboard(teams, action, gafIndex) {
+    let teamsButtons = [];
+    for(let k = 0; k < teams.length; k++) {
+        teamsButtons.push([bot.inlineButton(teams[k], {callback: '/' + action + gafIndex + k})]);
+    }
 
-let registration = {
-    _isWaitingForAnswer: false,
-    _registerationMap: new Map()
-};
+    return bot.inlineKeyboard(teamsButtons);
+}
+
+let _registerationMap = new Map();
 
 bot.on('/start', msg => {
-    if (registration._registerationMap.has(msg.from.id)) {
-        const person = registration._registerationMap.get(msg.from.id);
+    if (_registerationMap.has(msg.from.id)) {
+        const person = _registerationMap.get(msg.from.id);
         bot.sendMessage(msg.from.id, 'שלום ' + person.name + ' ! ', {replyMarkup: 'hide'});
         return;
     }
 
-    let tmunash_teams_keyboard = bot.keyboard([
-            [gaffs.TMUNASH.teams.DEVOPS.name, gaffs.TMUNASH.teams.HAGNA.name],
-            [gaffs.TMUNASH.teams.LAPID_1.name, gaffs.TMUNASH.teams.LAPID_2.name],
-            [gaffs.TMUNASH.teams.QA.name]
-        ],
-        {resize: true}
-    );
+    let gafsKeyboard = buildGafsKeyboard('gaf');
+    bot.sendMessage(msg.from.id, 'נעים מאוד! מאיזה גף אתה?',{replyMarkup: gafsKeyboard});
 
-    registration._isWaitingForAnswer = true;
     let person = {};
     person.id = msg.from.id;
     person.name = msg.from.first_name + " " + (msg.from.last_name || "");
-    registration._registerationMap.set(person.id, person);
+    _registerationMap.set(person.id, person);
 
-    bot.sendMessage(msg.from.id, 'ברוך הבא לגף, מאיזה צוות אתה?', {replyMarkup: tmunash_teams_keyboard});
 });
 
-bot.on("text", msg => {
-    if (registration._isWaitingForAnswer) {
-        function answer(text) {
-            bot.sendMessage(msg.from.id, 'ברוך הבא לצוות ' + text, {replyMarkup: 'hide'});
-            registration._isWaitingForAnswer = false;
-        }
-        switch (msg.text) {
-            case gaffs.TMUNASH.teams.DEVOPS.name:
-            {
-                answer(msg.text);
-                break;
-            }
-            case gaffs.TMUNASH.teams.HAGNA.name:
-            {
-                answer(msg.text);
-                break;
-            }
-            case gaffs.TMUNASH.teams.QA.name:
-            {
-                answer(msg.text);
-                break;
-            }
-            case gaffs.TMUNASH.teams.LAPID_1.name:
-            {
-                answer(msg.text);
-                break;
-            }
-            case gaffs.TMUNASH.teams.LAPID_2.name:
-            {
-                answer(msg.text);
-                break;
-            }
-        }
+for(let i = 0; i < GAFS.length; i++) {
+    let gaf = GAFS[i][0];
+    bot.on('/gaf' + i, msg => {
+        _registerationMap.get(msg.from.id).gaf = gaf;
+        let teams = GAFS[i][1];
+        let teamsKeyboard = buildTeamsKeyboard(teams, 'team', i);
+        bot.sendMessage(msg.from.id, 'מאיזה צוות אתה ב' + GAFS[i][0] + '?', {replyMarkup: teamsKeyboard});
+    });
+}
+
+for(let i = 0; i < GAFS.length; i++) {
+    let teams = GAFS[i][1];
+    for(let k = 0; k < teams.length; k++) {
+        let team = teams[k];
+        bot.on('/team' + i + k, msg => {
+            _registerationMap.get(msg.from.id).team = team;
+            console.log(_registerationMap)
+            bot.sendMessage(msg.from.id, 'ברוך הבא לצוות ' + team + '. \nבאפשרותך להקליד ״תפריט״ לקבלת אפשרויות השימוש');
+        });
     }
-});
+}
 
 const replayOptions = {
-    OFFICE: {name: "במשרד", route: "במשרד/", answer: 'רק גובניקים אומרים משרד :)'},
-    VACATION: {name: "בחופש", route: "בחופש/", answer: 'סליחה על ההפרעה, תהנה בחופשה!'},
-    COURSE: {name: "בקורס", route: "בקורס/", answer: 'יפה לך, תהנה בקורס!'},
-    DUTY: {name: "בתורנות", route: "בתורנות/", answer: 'תחזיק מעמד!'}
+    OFFICE: {name: "במשרד", answer: 'רק גובניקים אומרים משרד :)'},
+    VACATION: {name: "בחופש", answer: 'סליחה על ההפרעה, תהנה בחופשה!'},
+    COURSE: {name: "בקורס", answer: 'יפה לך, תהנה בקורס!'},
+    DUTY: { name: "בתורנות", answer: 'תחזיק מעמד!'}
 };
 
 let dailyReport = {_isWaitingForAnswer: false};
@@ -129,8 +108,12 @@ let sendFormAtSpecifiedTime = () => {
 function sendDailyReport() {
     console.log("sendDailyReport");
     dailyReport._isWaitingForAnswer = true;
-    registration._registerationMap.forEach((person, chat_id) => {
-        bot.sendMessage(chat_id, 'בוקר טוב ' + person.name +  ', איפה אתה?', {replyMarkup: dailyReportKeyboard});
+    let today = new Date().getDate();
+    _registerationMap.forEach((person, chat_id) => {
+        if (person.statusDay !== today) {
+            person.status = 'לא עודכן';
+            bot.sendMessage(chat_id, 'בוקר טוב ' + person.name + ', איפה אתה?', {replyMarkup: dailyReportKeyboard});
+        }
     });
 }
 
@@ -141,9 +124,10 @@ bot.on("text", msg => {
             bot.sendMessage(msg.from.id, option.answer, {replyMarkup: 'hide'});
             dailyReport._isWaitingForAnswer = false;
 
-            const person = registration._registerationMap.get(msg.from.id);
+            const person = _registerationMap.get(msg.from.id);
             if (person) {
                 person.status = option.name;
+                person.statusDay = new Date().getDate();
             }
         }
 
@@ -172,14 +156,80 @@ bot.on("text", msg => {
     }
 });
 
+
+bot.on(/דוח1/, msg => {
+    let gafsKeyboard = buildGafsKeyboard('gafReport');
+    bot.sendMessage(msg.from.id, 'נא לבחור גף:',{replyMarkup: gafsKeyboard});
+});
+
+for(let i = 0; i < GAFS.length; i++) {
+    bot.on('/gafReport' + i, msg => {
+        let teams = GAFS[i][1];
+        let teamsKeyboard = buildTeamsKeyboard(teams, 'teamReport', i);
+        bot.sendMessage(msg.from.id, 'נא לבחור צוות ב' + GAFS[i][0], {replyMarkup: teamsKeyboard});
+    });
+}
+
+for(let i = 0; i < GAFS.length; i++) {
+    let gaf = GAFS[i][0];
+    let teams = GAFS[i][1];
+    for(let k = 0; k < teams.length; k++) {
+        let team = teams[k];
+        bot.on('/teamReport' + i + k, msg => {
+            buildReport(msg.from.id, gaf, team);
+        });
+    }
+}
+
+function buildReport(id, gaf, team) {
+    let answer = false;
+    _registerationMap.forEach((person) => {
+        if(person.gaf === gaf && person.team === team) {
+            answer = true;
+            bot.sendMessage(id, person.name + ': ' + person.status);
+        }
+    });
+    if(!answer) {
+        bot.sendMessage(id, 'מה נסגר?! אף חבר צוות לא נרשם במערכת!');
+    }
+}
+
+
 bot.on(/סטטוס/, msg => {
-    const person = registration._registerationMap.get(msg.from.id);
+    const person = _registerationMap.get(msg.from.id);
+    let today = new Date().getDate();
     if (person) {
-        msg.reply.text(person.status || "חכה ל-9.. :)");
+        if (person.statusDay !== today) {
+            person.status = 'לא עודכן';
+        }
+        msg.reply.text(person.status);
     }
     else {
         msg.reply.text("סורי, אתה לא רשום במערכת.. להרשמה הקש /start");
     }
+});
+
+bot.on(/עדכן/, msg => {
+    let person = _registerationMap.has(msg.from.id);
+    if(person) {
+        let hour = new Date().getHours();
+        if(hour >= 6 && hour < 11) {
+            person.status = 'לא עודכן';
+            bot.sendMessage(msg.from.id, 'בוקר טוב ' + person.name + ', איפה אתה?', {replyMarkup: dailyReportKeyboard});
+        }
+        else {
+            msg.reply.text("סורי, ניתן לדווח רק בין 6 ל 11 בבוקר");
+        }
+    }
+    else {
+        msg.reply.text("סורי, אתה לא רשום במערכת.. להרשמה הקש /start");
+    }
+});
+
+bot.on(/תפריט/, msg => {
+    msg.reply.text("עדכן - אפשרות עדכון הסטטוס היומי. ניתן לעדכן בין השעות 6 ל 11 בבוקר בלבד" +
+        "\nסטטוס - קבלת מצב נוכחי אישי\n" +
+        "דוח1 - קבלת דוח מפורט יומי");
 });
 
 console.log(timeToStartTheInterval);
