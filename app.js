@@ -1,5 +1,8 @@
 ﻿const TeleBot = require('telebot');
-const bot = new TeleBot('608711787:AAHkJ1FOUYL6l7ZwDUXczklraWt77jJSN70');
+const bot = new TeleBot({
+    token: '608711787:AAG8UmE_B1PsXvbZJjbSbhCOnc_VKW4IYUg',
+    usePlugins: ['commandButton']
+});
 
 // 9:00
 const HOUR_TO_SEND_STATUS_PROMPT = 9;
