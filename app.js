@@ -1,9 +1,9 @@
-const TeleBot = require('telebot');
-const bot = new TeleBot('605816885:AAFe49RlVOiOQjU0F5Uqd60PorjSwJ2klmk');
+﻿const TeleBot = require('telebot');
+const bot = new TeleBot('608711787:AAHkJ1FOUYL6l7ZwDUXczklraWt77jJSN70');
 
 // 9:00
-const HOUR_TO_SEND_STATUS_PROMPT = 18;
-const MINUTE_TO_SEND_STATUS_PROMPT = 32;
+const HOUR_TO_SEND_STATUS_PROMPT = 9;
+const MINUTE_TO_SEND_STATUS_PROMPT = 0;
  
 const SECONDS_TO_SEND_STATUS_PROMPT = 0;
 
