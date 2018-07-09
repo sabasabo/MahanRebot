@@ -1,13 +1,13 @@
 ﻿const TeleBot = require('telebot');
 const bot = new TeleBot({
-    token: '608711787:AAG8UmE_B1PsXvbZJjbSbhCOnc_VKW4IYUg',
+    token: 'TOKEN',
     usePlugins: ['commandButton']
 });
 
 // 9:00
 const HOUR_TO_SEND_STATUS_PROMPT = 9;
 const MINUTE_TO_SEND_STATUS_PROMPT = 0;
- 
+
 const SECONDS_TO_SEND_STATUS_PROMPT = 0;
 
 
@@ -43,12 +43,12 @@ bot.on('/start', msg => {
     }
 
     let gafsKeyboard = buildGafsKeyboard('gaf');
-    bot.sendMessage(msg.from.id, 'נעים מאוד! מאיזה גף אתה?',{replyMarkup: gafsKeyboard});
 
     let person = {};
     person.id = msg.from.id;
     person.name = msg.from.first_name + " " + (msg.from.last_name || "");
     _registerationMap.set(person.id, person);
+    bot.sendMessage(msg.from.id, 'נעים מאוד! מאיזה גף אתה?',{replyMarkup: gafsKeyboard});
 
 });
 
@@ -68,7 +68,6 @@ for(let i = 0; i < GAFS.length; i++) {
         let team = teams[k];
         bot.on('/team' + i + k, msg => {
             _registerationMap.get(msg.from.id).team = team;
-            console.log(_registerationMap)
             bot.sendMessage(msg.from.id, 'ברוך הבא לצוות ' + team + '. \nבאפשרותך להקליד ״תפריט״ לקבלת אפשרויות השימוש');
         });
     }
@@ -213,10 +212,11 @@ bot.on(/סטטוס/, msg => {
 });
 
 bot.on(/עדכן/, msg => {
-    let person = _registerationMap.has(msg.from.id);
+    let person = _registerationMap.get(msg.from.id);
     if(person) {
         let hour = new Date().getHours();
         if(hour >= 6 && hour < 11) {
+            dailyReport._isWaitingForAnswer = true;
             person.status = 'לא עודכן';
             bot.sendMessage(msg.from.id, 'בוקר טוב ' + person.name + ', איפה אתה?', {replyMarkup: dailyReportKeyboard});
         }
