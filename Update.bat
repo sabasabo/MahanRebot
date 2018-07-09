@@ -1,2 +1,3 @@
 cd C:\devl\work\MahanRebot
-npm start
+git reset --hard
+git pull
