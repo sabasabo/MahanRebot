@@ -215,13 +215,15 @@ bot.on(/עדכן/, msg => {
     let person = _registerationMap.get(msg.from.id);
     if(person) {
         let hour = new Date().getHours();
-        if(hour >= 6 && hour < 11) {
+        if(hour >= 7 && hour < 11) {
             dailyReport._isWaitingForAnswer = true;
             person.status = 'לא עודכן';
             bot.sendMessage(msg.from.id, 'בוקר טוב ' + person.name + ', איפה אתה?', {replyMarkup: dailyReportKeyboard});
         }
-        else {
-            msg.reply.text("סורי, ניתן לדווח רק בין 6 ל 11 בבוקר");
+        else if(hour > 10){
+            msg.reply.text('עכשיו נזכרת..? חבל תהנה מהחופש');
+        }else {
+            msg.reply.text("Zzzz....");
         }
     }
     else {
@@ -230,7 +232,7 @@ bot.on(/עדכן/, msg => {
 });
 
 bot.on(/תפריט/, msg => {
-    msg.reply.text("עדכן - אפשרות עדכון הסטטוס היומי. ניתן לעדכן בין השעות 6 ל 11 בבוקר בלבד" +
+    msg.reply.text("עדכן - אפשרות עדכון הסטטוס היומי. ניתן לעדכן בין השעות 7 ל 11 בבוקר בלבד" +
         "\nסטטוס - קבלת מצב נוכחי אישי\n" +
         "דוח1 - קבלת דוח מפורט יומי");
 });
