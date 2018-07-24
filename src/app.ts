@@ -1,4 +1,6 @@
 ﻿import {schedule} from "./time-scheduler";
+import {Person} from "./Person";
+import {Gaf} from "./Gaf";
 
 const TeleBot = require('telebot');
 const bot = new TeleBot({
@@ -10,14 +12,13 @@ const bot = new TeleBot({
 const HOUR_TO_SEND_STATUS_PROMPT: number = 9;
 const MINUTE_TO_SEND_STATUS_PROMPT: number = 0;
 
-let GAFS = [
-    ['תמונת שמיים',['לפיד 1','לפיד 2','שערי שמיים','devops','בדיקות']]
-];
+let gafs : Gaf[] = [];
+gafs.push(new Gaf('תמונת שמיים', ['לפיד 1','לפיד 2','שערי שמיים','devops','בדיקות']));
 
 function buildGafsKeyboard(action) {
     let gafsButtons = [];
-    for(let i = 0; i < GAFS.length; i++) {
-        gafsButtons.push([bot.inlineButton(GAFS[i][0], {callback: '/' + action + i})]);
+    for(let i = 0; i < gafs.length; i++) {
+        gafsButtons.push([bot.inlineButton(gafs[i].name, {callback: '/' + action + i})]);
     }
 
     return bot.inlineKeyboard(gafsButtons);
@@ -32,37 +33,35 @@ function buildTeamsKeyboard(teams, action, gafIndex) {
     return bot.inlineKeyboard(teamsButtons);
 }
 
-let _registerationMap = new Map();
+let _registerationMap = new Map<number, Person>();
 
 bot.on('/start', msg => {
     if (_registerationMap.has(msg.from.id)) {
-        const person = _registerationMap.get(msg.from.id);
+        const person : Person = _registerationMap.get(msg.from.id);
         bot.sendMessage(msg.from.id, 'שלום ' + person.name + ' ! ', {replyMarkup: 'hide'});
         return;
     }
 
     let gafsKeyboard = buildGafsKeyboard('gaf');
+    let person: Person = new Person(msg.from.id, msg.from.first_name + " " + (msg.from.last_name || ""), '');
 
-    let person = {id: -1, name: ''};
-    person.id = msg.from.id;
-    person.name = msg.from.first_name + " " + (msg.from.last_name || "");
     _registerationMap.set(person.id, person);
     bot.sendMessage(msg.from.id, 'נעים מאוד! מאיזה גף אתה?',{replyMarkup: gafsKeyboard});
 
 });
 
-for(let i = 0; i < GAFS.length; i++) {
-    let gaf = GAFS[i][0];
+for(let i = 0; i < gafs.length; i++) {
+    let gaf :string = gafs[i].name;
     bot.on('/gaf' + i, msg => {
         _registerationMap.get(msg.from.id).gaf = gaf;
-        let teams = GAFS[i][1];
+        let teams: string[] = gafs[i].teams;
         let teamsKeyboard = buildTeamsKeyboard(teams, 'team', i);
-        bot.sendMessage(msg.from.id, 'מאיזה צוות אתה ב' + GAFS[i][0] + '?', {replyMarkup: teamsKeyboard});
+        bot.sendMessage(msg.from.id, 'מאיזה צוות אתה ב' + gafs[i].name + '?', {replyMarkup: teamsKeyboard});
     });
 }
 
-for(let i = 0; i < GAFS.length; i++) {
-    let teams = GAFS[i][1];
+for(let i = 0; i < gafs.length; i++) {
+    let teams = gafs[i].teams;
     for(let k = 0; k < teams.length; k++) {
         let team = teams[k];
         bot.on('/team' + i + k, msg => {
@@ -143,17 +142,17 @@ bot.on(/דוח1/, msg => {
     bot.sendMessage(msg.from.id, 'נא לבחור גף:',{replyMarkup: gafsKeyboard});
 });
 
-for(let i = 0; i < GAFS.length; i++) {
+for(let i = 0; i < gafs.length; i++) {
     bot.on('/gafReport' + i, msg => {
-        let teams = GAFS[i][1];
+        let teams: string[] = gafs[i].teams;
         let teamsKeyboard = buildTeamsKeyboard(teams, 'teamReport', i);
-        bot.sendMessage(msg.from.id, 'נא לבחור צוות ב' + GAFS[i][0], {replyMarkup: teamsKeyboard});
+        bot.sendMessage(msg.from.id, 'נא לבחור צוות ב' + gafs[i].name, {replyMarkup: teamsKeyboard});
     });
 }
 
-for(let i = 0; i < GAFS.length; i++) {
-    let gaf = GAFS[i][0];
-    let teams = GAFS[i][1];
+for(let i = 0; i < gafs.length; i++) {
+    let gaf: string = gafs[i].name;
+    let teams: string[] = gafs[i].teams;
     for(let k = 0; k < teams.length; k++) {
         let team = teams[k];
         bot.on('/teamReport' + i + k, msg => {
