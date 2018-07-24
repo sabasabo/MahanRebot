@@ -78,8 +78,6 @@ const replayOptions = {
     DUTY: { name: "בתורנות", answer: 'תחזיק מעמד!'}
 };
 
-let dailyReport = {_isWaitingForAnswer: false};
-
 let dailyReportKeyboard = bot.keyboard([
     [replayOptions.OFFICE.name, replayOptions.DUTY.name],
     [replayOptions.VACATION.name, replayOptions.COURSE.name]
@@ -87,7 +85,6 @@ let dailyReportKeyboard = bot.keyboard([
 
 function sendDailyReport() {
     console.log("sendDailyReport");
-    dailyReport._isWaitingForAnswer = true;
     let today = new Date().getDate();
     _registerationMap.forEach((person, chat_id) => {
         if (person.statusDay !== today) {
@@ -98,40 +95,42 @@ function sendDailyReport() {
 }
 
 bot.on("text", msg => {
-    if (dailyReport._isWaitingForAnswer) {
-
-        function answer(option) {
+    function answer(option) {
+        let hour = new Date().getHours();
+        if(hour >= 7 && hour < 11) {
             bot.sendMessage(msg.from.id, option.answer, {replyMarkup: 'hide'});
-            dailyReport._isWaitingForAnswer = false;
-
             const person = _registerationMap.get(msg.from.id);
             if (person) {
                 person.status = option.name;
                 person.statusDay = new Date().getDate();
             }
+        } else if(hour > 10){
+            msg.reply.text('עכשיו נזכרת..? חבל תהנה מהחופש');
+        } else {
+            msg.reply.text("Zzzz....");
         }
+    }
 
-        switch (msg.text) {
-            case replayOptions.COURSE.name:
-            {
-                answer(replayOptions.COURSE);
-                break;
-            }
-            case replayOptions.DUTY.name:
-            {
-                answer(replayOptions.DUTY);
-                break;
-            }
-            case replayOptions.OFFICE.name:
-            {
-                answer(replayOptions.OFFICE);
-                break;
-            }
-            case replayOptions.VACATION.name:
-            {
-                answer(replayOptions.VACATION);
-                break;
-            }
+    switch (msg.text) {
+        case replayOptions.COURSE.name:
+        {
+            answer(replayOptions.COURSE);
+            break;
+        }
+        case replayOptions.DUTY.name:
+        {
+            answer(replayOptions.DUTY);
+            break;
+        }
+        case replayOptions.OFFICE.name:
+        {
+            answer(replayOptions.OFFICE);
+            break;
+        }
+        case replayOptions.VACATION.name:
+        {
+            answer(replayOptions.VACATION);
+            break;
         }
     }
 });
@@ -194,7 +193,6 @@ bot.on(/עדכן/, msg => {
     if(person) {
         let hour = new Date().getHours();
         if(hour >= 7 && hour < 11) {
-            dailyReport._isWaitingForAnswer = true;
             person.status = 'לא עודכן';
             bot.sendMessage(msg.from.id, 'בוקר טוב ' + person.name + ', איפה אתה?', {replyMarkup: dailyReportKeyboard});
         }
