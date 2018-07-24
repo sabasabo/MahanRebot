@@ -1,4 +1,4 @@
-﻿import {timeToStartTheInterval} from "./time-scheduler";
+﻿import {schedule} from "./time-scheduler";
 
 const TeleBot = require('telebot');
 const bot = new TeleBot({
@@ -7,11 +7,8 @@ const bot = new TeleBot({
 });
 
 // 9:00
-const HOUR_TO_SEND_STATUS_PROMPT = 9;
-const MINUTE_TO_SEND_STATUS_PROMPT = 0;
-
-const SECONDS_TO_SEND_STATUS_PROMPT = 0;
-
+const HOUR_TO_SEND_STATUS_PROMPT: number = 11;
+const MINUTE_TO_SEND_STATUS_PROMPT: number = 26;
 
 let GAFS = [
     ['תמונת שמיים',['לפיד 1','לפיד 2','שערי שמיים','devops','בדיקות']]
@@ -84,30 +81,10 @@ const replayOptions = {
 
 let dailyReport = {_isWaitingForAnswer: false};
 
-
-let dateNow = new Date();
-let dateOfSendingPrompt = new Date();
-
-dateOfSendingPrompt.setHours(HOUR_TO_SEND_STATUS_PROMPT);
-dateOfSendingPrompt.setMinutes(MINUTE_TO_SEND_STATUS_PROMPT);
-dateOfSendingPrompt.setSeconds(SECONDS_TO_SEND_STATUS_PROMPT);
-
-if (dateNow > dateOfSendingPrompt) {
-    // changing the date of sending the prompt to tomorrow
-    dateOfSendingPrompt.setDate(dateNow.getDate() + 1);
-}
-//let timeToStartTheInterval = dateOfSendingPrompt - dateNow;
-
 let dailyReportKeyboard = bot.keyboard([
     [replayOptions.OFFICE.name, replayOptions.DUTY.name],
     [replayOptions.VACATION.name, replayOptions.COURSE.name]
 ], {resize: true});
-
-const DAY_IN_MS = 86400000;
-let sendFormAtSpecifiedTime = () => {
-    sendDailyReport();
-    setInterval(sendDailyReport, DAY_IN_MS);
-};
 
 function sendDailyReport() {
     console.log("sendDailyReport");
@@ -239,7 +216,5 @@ bot.on(/תפריט/, msg => {
         "דוח1 - קבלת דוח מפורט יומי");
 });
 
-console.log(timeToStartTheInterval);
-setTimeout(sendFormAtSpecifiedTime, timeToStartTheInterval);
-
+schedule(sendDailyReport, HOUR_TO_SEND_STATUS_PROMPT, MINUTE_TO_SEND_STATUS_PROMPT);
 bot.start();
