@@ -2,7 +2,7 @@
 
 const TeleBot = require('telebot');
 const bot = new TeleBot({
-    token: '563240816:AAGh8uuIFfso91_r7Ium8na7TneorLoH6r8',
+    token: 'TOKEN',
     usePlugins: ['commandButton']
 });
 
