@@ -1,8 +1,10 @@
 ﻿import {timeToStartTheInterval} from "./time-scheduler";
+import JsonFile from "./json-reader";
+
 
 const TeleBot = require('telebot');
 const bot = new TeleBot({
-    token: 'TOKEN',
+    token: 'yohai lior token',
     usePlugins: ['commandButton']
 });
 
@@ -234,9 +236,19 @@ bot.on(/עדכן/, msg => {
 });
 
 bot.on(/תפריט/, msg => {
+    console.log("Menu")
     msg.reply.text("עדכן - אפשרות עדכון הסטטוס היומי. ניתן לעדכן בין השעות 7 ל 11 בבוקר בלבד" +
         "\nסטטוס - קבלת מצב נוכחי אישי\n" +
         "דוח1 - קבלת דוח מפורט יומי");
+});
+
+bot.on(/שמור/, msg => {
+    let reader = new JsonFile('storage');
+    reader.createFile({name: "vaisman", status: "away"});
+    setTimeout(() => {
+        let val: any = reader.readFile();
+        console.log(val);
+    }, 1000);
 });
 
 console.log(timeToStartTheInterval);
