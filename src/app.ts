@@ -7,8 +7,8 @@ const bot = new TeleBot({
 });
 
 // 9:00
-const HOUR_TO_SEND_STATUS_PROMPT: number = 11;
-const MINUTE_TO_SEND_STATUS_PROMPT: number = 26;
+const HOUR_TO_SEND_STATUS_PROMPT: number = 9;
+const MINUTE_TO_SEND_STATUS_PROMPT: number = 0;
 
 let GAFS = [
     ['תמונת שמיים',['לפיד 1','לפיד 2','שערי שמיים','devops','בדיקות']]
