@@ -1,8 +1,8 @@
 git reset --hard
 git pull
 npm install
-sed -i.bak "s/TOKEN/`tail -1 token.txt`/g" app.js
-rm app.js.bak
+sed -i.bak "s/TOKEN/`tail -1 token.txt`/g" app.ts
+rm app.ts.bak
 npm start
 
 
@@ -23,7 +23,7 @@ npm start
 #		npm install
 #	
 #		token=`tail -1 token.txt`
-#		sed -i.bak 's/TOKEN/$token/g' app.js
+#		sed -i.bak 's/TOKEN/$token/g' app.ts
 #		npm start &
 #	fi
 #	sleep 300

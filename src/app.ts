@@ -1,6 +1,8 @@
-﻿const TeleBot = require('telebot');
+﻿import {timeToStartTheInterval} from "./time-scheduler";
+
+const TeleBot = require('telebot');
 const bot = new TeleBot({
-    token: 'TOKEN',
+    token: '563240816:AAGh8uuIFfso91_r7Ium8na7TneorLoH6r8',
     usePlugins: ['commandButton']
 });
 
@@ -44,7 +46,7 @@ bot.on('/start', msg => {
 
     let gafsKeyboard = buildGafsKeyboard('gaf');
 
-    let person = {};
+    let person = {id: -1, name: ''};
     person.id = msg.from.id;
     person.name = msg.from.first_name + " " + (msg.from.last_name || "");
     _registerationMap.set(person.id, person);
@@ -94,7 +96,7 @@ if (dateNow > dateOfSendingPrompt) {
     // changing the date of sending the prompt to tomorrow
     dateOfSendingPrompt.setDate(dateNow.getDate() + 1);
 }
-let timeToStartTheInterval = dateOfSendingPrompt - dateNow;
+//let timeToStartTheInterval = dateOfSendingPrompt - dateNow;
 
 let dailyReportKeyboard = bot.keyboard([
     [replayOptions.OFFICE.name, replayOptions.DUTY.name],
